@@ -1,4 +1,7 @@
-# Amodal Instance Segmentation with Transformer
+# Fork of Amodal Instance Segmentation with Transformer for reproduction 
+
+AISFormer without the Amodal.
+
 Table of Contents
 * [Introduction](#introduction)
 * [Usage](#usage)
