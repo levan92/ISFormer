@@ -17,6 +17,8 @@ def add_config(cfg):
     # boundary loss
     cfg.MODEL.AISFormer.BO_LOSS = False
 
+    cfg.MODEL.AISFormer.NO_AMODAL = False
+
     # addation
     cfg.SOLVER.OPTIMIZER = "AdamW"
 
@@ -32,6 +34,11 @@ def add_config(cfg):
 
     # not related to aisformer, refactor and remove later
     cfg.MODEL.ALL_LAYERS_ROI_POOLING = False
+
+    # best ckpter 
+    cfg.SOLVER.BEST_CHECKPOINTER = CN({"ENABLED": False})
+    cfg.SOLVER.BEST_CHECKPOINTER.METRIC = "ochumanex_val/segm/AP"
+    cfg.SOLVER.BEST_CHECKPOINTER.MODE = "max"
 
 
 if __name__== '__main__':

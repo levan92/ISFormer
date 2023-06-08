@@ -162,7 +162,9 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
             # can trigger this assertion.
             assert anno["image_id"] == image_id
 
-            assert anno.get("ignore", 0) == 0, '"ignore" in COCO json file is not supported.'
+            # assert anno.get("ignore", 0) == 0, '"ignore" in COCO json file is not supported.'
+            if anno.get('ignore', False):
+                continue
 
             obj = {key: anno[key] for key in ann_keys if key in anno}
             if "bbox" in obj and len(obj["bbox"]) == 0:
@@ -372,7 +374,7 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
 
             segm = anno.get("segmentation", None)
             bo_segm = anno.get("bg_object_segmentation", None)
-            i_segm = anno.get("i_segmentation", None)
+
             if segm:  # either list[list[float]] or dict(RLE)
                 if isinstance(segm, dict):
                     if isinstance(segm["counts"], list):
@@ -380,15 +382,14 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
                         segm = mask_util.frPyObjects(segm, *segm["size"])
                 else:
                     # filter out invalid polygons (< 3 points)
-                    segm = [poly for poly in segm if len(poly) % 2 == 0 and len(poly) >= 6]
+                    # segm = [poly for poly in segm if len(poly) % 2 == 0 and len(poly) >= 6]
                     bo_segm = [poly for poly in bo_segm if len(poly) % 2 == 0 and len(poly) >= 6]
-                    i_segm = [poly for poly in i_segm if len(poly) % 2 == 0 and len(poly) >= 6]
+                    segm = [poly for poly in segm if len(poly) % 2 == 0 and len(poly) >= 6]
                     if len(segm) == 0:
                         num_instances_without_valid_segmentation += 1
                         continue  # ignore this instance
-                obj["segmentation"] = segm
                 obj["bg_object_segmentation"] = bo_segm
-                obj["i_segmentation"] = i_segm
+                obj["segmentation"] = segm
 
             keypts = anno.get("keypoints", None)
             if keypts:  # list[int]

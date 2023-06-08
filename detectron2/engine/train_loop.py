@@ -293,6 +293,10 @@ class SimpleTrainer(TrainerBase):
 
         self._write_metrics(loss_dict, data_time)
 
+        # for name, param in self.model.named_parameters():
+        #     if param.grad is None:
+        #         print(name)
+       
         """
         If you need gradient clipping/scaling or other processing, you can
         wrap the optimizer with your custom `step()` method. But it is

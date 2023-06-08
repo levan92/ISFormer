@@ -42,6 +42,7 @@ class AISFormer(nn.Module):
         num_mask_classes = 1 if cls_agnostic_mask else num_classes
         self.num_mask_classes = num_mask_classes
         self.aisformer = cfg.MODEL.AISFormer
+        self.no_amodal = cfg.MODEL.AISFormer.NO_AMODAL
         # fmt: on
 
         # deconv
@@ -56,10 +57,10 @@ class AISFormer(nn.Module):
         weight_init.c2_msra_fill(self.mask_feat_learner_TR)
 
         # mask predictor
-        self.predictor_TR = Conv2d(1, num_mask_classes, kernel_size=1, stride=1, padding=0)
-        nn.init.normal_(self.predictor_TR.weight, std=0.001)
-        if self.predictor_TR.bias is not None:
-            nn.init.constant_(self.predictor_TR.bias, 0)
+        # self.predictor_TR = Conv2d(1, num_mask_classes, kernel_size=1, stride=1, padding=0)
+        # nn.init.normal_(self.predictor_TR.weight, std=0.001)
+        # if self.predictor_TR.bias is not None:
+        #     nn.init.constant_(self.predictor_TR.bias, 0)
 
         # pixel embedding
         self.pixel_embed = nn.Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))
@@ -72,10 +73,10 @@ class AISFormer(nn.Module):
         for layer in self.mask_embed.layers:
             torch.nn.init.xavier_uniform_(layer.weight)
 
-        # subtract modeling
-        self.subtract_model = MLP(512, 256, 256, 2)
-        for layer in self.subtract_model.layers:
-            torch.nn.init.xavier_uniform_(layer.weight)
+        # # subtract modeling
+        # self.subtract_model = MLP(512, 256, 256, 2)
+        # for layer in self.subtract_model.layers:
+        #     torch.nn.init.xavier_uniform_(layer.weight)
 
         # norm rois
         self.norm_rois = nn.LayerNorm(256)
@@ -91,15 +92,18 @@ class AISFormer(nn.Module):
         decoder_layer = TransformerDecoderLayer(d_model=emb_dim, nhead=self.aisformer.N_HEADS, normalize_before=False)
         self.transformer_decoder = TransformerDecoder(decoder_layer, num_layers=self.aisformer.N_LAYERS) # 6 is the default of detr
 
-        n_output_masks = 4 # 4 embeddings, vi_mask, occluder, a_mask, invisible_mask
+        if self.no_amodal:
+            n_output_masks = 2 # 2 embeddings, vi_mask, occluder,
+        else:
+            n_output_masks = 4 # 4 embeddings, vi_mask, occluder, a_mask, invisible_mask
         self.query_embed = nn.Embedding(num_embeddings=n_output_masks, embedding_dim=emb_dim)
 
 
     def forward(self, x):
         x_ori = x.clone()
         bs = x_ori.shape[0]
-        emb_dim = x_ori.shape[1]
-        spat_size = x_ori.shape[-1]
+        # emb_dim = x_ori.shape[1]
+        # spat_size = x_ori.shape[-1]
 
         # short range learning
         x = self.mask_feat_learner_TR(x)
@@ -130,19 +134,25 @@ class AISFormer(nn.Module):
         roi_embeding = self.pixel_embed(roi_embeding)
 
         mask_embs = self.mask_embed(decoder_output)
-        if self.aisformer.JUSTIFY_LOSS:
-            assert self.aisformer.USE == True
-            combined_feat = torch.cat([mask_embs[:,2,:],mask_embs[:,0,:]], axis=1)
-            invisible_embs = self.subtract_model(combined_feat)
-            invisible_embs = invisible_embs.unsqueeze(1)
-            mask_embs = torch.concat([mask_embs, invisible_embs], axis=1)
+        # if not self.no_amodal and self.aisformer.JUSTIFY_LOSS:
+        #     assert self.aisformer.USE == True
+        #     combined_feat = torch.cat([mask_embs[:,2,:],mask_embs[:,0,:]], axis=1)
+        #     invisible_embs = self.subtract_model(combined_feat)
+        #     invisible_embs = invisible_embs.unsqueeze(1)
+        #     mask_embs = torch.concat([mask_embs, invisible_embs], axis=1)
 
         outputs_mask = torch.einsum("bqc,bchw->bqhw", mask_embs, roi_embeding)
 
         vi_masks        = outputs_mask[:,0,:,:].unsqueeze(1) #visible mask
         bo_masks        = outputs_mask[:,1,:,:].unsqueeze(1) #occluder mask
-        a_masks         = outputs_mask[:,2,:,:].unsqueeze(1) #amodal mask
-        invisible_masks = outputs_mask[:,-1,:,:].unsqueeze(1) #invisible mask
-        dump_tensor = torch.zeros_like(vi_masks).to(device='cuda')
 
-        return vi_masks, bo_masks, a_masks, invisible_masks
+        # if not self.no_amodal:
+        #     a_masks         = outputs_mask[:,2,:,:].unsqueeze(1) #amodal mask
+        #     # comment away here amodal
+        #     invisible_masks = outputs_mask[:,-1,:,:].unsqueeze(1) #invisible mask
+        #     dump_tensor = torch.zeros_like(vi_masks).to(device='cuda')
+
+        #     # return vi_masks, bo_masks
+        #     return vi_masks, bo_masks, a_masks, invisible_masks
+        # else: 
+        return vi_masks, bo_masks

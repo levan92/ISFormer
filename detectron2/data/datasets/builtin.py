@@ -41,6 +41,7 @@ _PREDEFINED_SPLITS_COCO["coco"] = {
         "coco/val2014",
         "coco/annotations/instances_valminusminival2014.json",
     ),
+    "coco_2017_train_occ": ("coco/train2017", "coco/annotations/bcnet/instances_train_2017_transform_slight_correct.json"),
     "coco_2017_train": ("coco/train2017", "coco/annotations/instances_train2017.json"),
     "coco_2017_val": ("coco/val2017", "coco/annotations/instances_val2017.json"),
     "coco_2017_test": ("coco/test2017", "coco/annotations/image_info_test2017.json"),
@@ -248,8 +249,8 @@ def register_all_ade20k(root):
 
 def register_kins():
     register_coco_instances("kins_dataset_train", {}, 
-        "/home/tqminh/codes/AmodalSeg/data/datasets/KINS/annotations/instances_train2017_amodal.json", 
-        "/home/tqminh/codes/AmodalSeg/data/datasets/KINS/train2017"
+        "/home/2130704/Workspace/Amodal-Instance-Segmentation-through-KINS-Dataset/instances_train_amodal.json", 
+        "/data/PublicDatasets/KINS/training"
     )
     
     meta = MetadataCatalog.get('kins_dataset_train')
@@ -257,8 +258,8 @@ def register_kins():
                             'truck', 'van', 'misc']
 
     register_coco_instances("kins_dataset_val", {}, 
-        "/home/tqminh/codes/AmodalSeg/data/datasets/KINS/annotations/instances_val2017.json", 
-        "/home/tqminh/codes/AmodalSeg/data/datasets/KINS/val2017"
+        "/home/2130704/Workspace/Amodal-Instance-Segmentation-through-KINS-Dataset/instances_val.json", 
+        "/data/PublicDatasets/KINS/testing"
     )
 
     meta = MetadataCatalog.get('kins_dataset_val')
@@ -266,69 +267,106 @@ def register_kins():
                             'truck', 'van', 'misc']
 
 
-
-def register_COCOA():
-    # train data
+def register_coco_person_ochuman():
     register_coco_instances(
-        "cocoa_cls_train", {},
-        "/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/annotations/instances_train2014_amodal.json",
-        "/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/train2014"
+        "coco_2017_train_person_occ", 
+        {"thing_classes": ["person"]}, 
+        "/data/PublicDatasets/COCO2017/annotations/instances_train2017-person-occ.json", 
+        "/data/PublicDatasets/COCO2017/train2017"
     )
-    meta = MetadataCatalog.get("cocoa_cls_train")
-    cocoa_cat_list = None
-    with open('/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/cocoa_cat_list', 'rb') as fp:
-        cocoa_cat_list = pickle.load(fp)
-    meta.thing_classes = cocoa_cat_list
 
-    # val data
     register_coco_instances(
-        "cocoa_cls_val", {},
-        "/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/annotations/instances_val2014.json",
-        "/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/val2014"
+        "coco_2017_val_5k_person", 
+        {"thing_classes": ["person"]}, 
+        "/data/PublicDatasets/COCO2017/annotations/instances_val2017-5k-person.json", 
+        "/data/PublicDatasets/COCO2017/val2017"
     )
-    meta = MetadataCatalog.get("cocoa_cls_val")
-    cocoa_cat_list = None
-    with open('/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/cocoa_cat_list', 'rb') as fp:
-        cocoa_cat_list = pickle.load(fp)
-    meta.thing_classes = cocoa_cat_list
 
-
-def register_D2SA():
-    # train data
     register_coco_instances(
-        "d2sa_train", {},
-        "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/annotations/instances_train2017_amodal.json",
-        "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2s_amodal_images_v1/images/"
+        "ochumanex_val", 
+        {"thing_classes": ["person"]}, 
+        "/data/PublicDatasets/OCHuman/ochumanEX_coco_format_val_range_0.00_1.00.json", 
+        "/data/PublicDatasets/OCHuman/images"
     )
-    meta = MetadataCatalog.get("d2sa_train")
-    d2sa_cat_list = None
-    with open('/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2sa_cat_list', 'rb') as fp:
-        d2sa_cat_list = pickle.load(fp)
-    meta.thing_classes = d2sa_cat_list 
 
-    # augmented train data
     register_coco_instances(
-        "d2sa_train_aug", {},
-        "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/annotations/instances_train_aug_2017_amodal.json",
-        "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2s_amodal_images_v1/images/"
+        "ochumanex_val-noignores", 
+        {"thing_classes": ["person"]}, 
+        "/data/PublicDatasets/OCHuman/ochumanEX_coco_format_val_range_0.00_1.00-removeignore.json", 
+        "/data/PublicDatasets/OCHuman/images"
     )
-    meta = MetadataCatalog.get("d2sa_train_aug")
-    d2sa_cat_list = None
-    with open('/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2sa_cat_list', 'rb') as fp:
-        d2sa_cat_list = pickle.load(fp)
-    meta.thing_classes = d2sa_cat_list 
 
-    # val data
     register_coco_instances(
-        "d2sa_val", {},
-        "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/annotations/instances_val2017.json",
-        "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2s_amodal_images_v1/images/"
+        "ochumanex_test", 
+        {"thing_classes": ["person"]}, 
+        "/data/PublicDatasets/OCHuman/ochumanEX_coco_format_test_range_0.00_1.00.json", 
+        "/data/PublicDatasets/OCHuman/images"
     )
-    meta = MetadataCatalog.get("d2sa_val")
-    d2sa_cat_list = None
-    with open('/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2sa_cat_list', 'rb') as fp:
-        d2sa_cat_list = pickle.load(fp)
-    meta.thing_classes = d2sa_cat_list 
+
+
+
+# def register_COCOA():
+#     # train data
+#     register_coco_instances(
+#         "cocoa_cls_train", {},
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/annotations/instances_train2014_amodal.json",
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/train2014"
+#     )
+#     meta = MetadataCatalog.get("cocoa_cls_train")
+#     cocoa_cat_list = None
+#     with open('/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/cocoa_cat_list', 'rb') as fp:
+#         cocoa_cat_list = pickle.load(fp)
+#     meta.thing_classes = cocoa_cat_list
+
+#     # val data
+#     register_coco_instances(
+#         "cocoa_cls_val", {},
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/annotations/instances_val2014.json",
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/val2014"
+#     )
+#     meta = MetadataCatalog.get("cocoa_cls_val")
+#     cocoa_cat_list = None
+#     with open('/home/tqminh/codes/AmodalSeg/data/datasets/COCOA/cocoa_cat_list', 'rb') as fp:
+#         cocoa_cat_list = pickle.load(fp)
+#     meta.thing_classes = cocoa_cat_list
+
+
+# def register_D2SA():
+#     # train data
+#     register_coco_instances(
+#         "d2sa_train", {},
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/annotations/instances_train2017_amodal.json",
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2s_amodal_images_v1/images/"
+#     )
+#     meta = MetadataCatalog.get("d2sa_train")
+#     d2sa_cat_list = None
+#     with open('/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2sa_cat_list', 'rb') as fp:
+#         d2sa_cat_list = pickle.load(fp)
+#     meta.thing_classes = d2sa_cat_list 
+
+#     # augmented train data
+#     register_coco_instances(
+#         "d2sa_train_aug", {},
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/annotations/instances_train_aug_2017_amodal.json",
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2s_amodal_images_v1/images/"
+#     )
+#     meta = MetadataCatalog.get("d2sa_train_aug")
+#     d2sa_cat_list = None
+#     with open('/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2sa_cat_list', 'rb') as fp:
+#         d2sa_cat_list = pickle.load(fp)
+#     meta.thing_classes = d2sa_cat_list 
+
+#     # val data
+#     register_coco_instances(
+#         "d2sa_val", {},
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/annotations/instances_val2017.json",
+#         "/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2s_amodal_images_v1/images/"
+#     )
+#     meta = MetadataCatalog.get("d2sa_val")
+#     d2sa_cat_list = None
+#     with open('/home/tqminh/codes/AmodalSeg/data/datasets/D2SA/d2sa_cat_list', 'rb') as fp:
+#         d2sa_cat_list = pickle.load(fp)
+#     meta.thing_classes = d2sa_cat_list 
 
 # True for open source;
 # Internally at fb, we register them elsewhere
@@ -342,5 +380,6 @@ if __name__.endswith(".builtin"):
     register_all_pascal_voc(_root)
     register_all_ade20k(_root)
     register_kins()
-    register_COCOA()
-    register_D2SA()
+    register_coco_person_ochuman()
+    # register_COCOA()
+    # register_D2SA()

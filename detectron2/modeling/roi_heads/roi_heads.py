@@ -633,6 +633,7 @@ class StandardROIHeads(ROIHeads):
 
         # aisformer attributes
         self.aisformer = aisformer
+        self.no_amodal = aisformer.NO_AMODAL
 
     @classmethod
     def from_config(cls, cfg, input_shape):
@@ -825,25 +826,38 @@ class StandardROIHeads(ROIHeads):
 
             mask_head_results, instances = self._forward_mask(features, proposals, c_iter)
 
-            mask_logits, bo_masks, a_mask_logits, invisible_mask_logits = mask_head_results
+            if self.no_amodal: 
+                mask_logits, bo_masks = mask_head_results
+                a_mask_logits, invisible_mask_logits = None, None
+            else:
+                mask_logits, bo_masks, a_mask_logits, invisible_mask_logits = mask_head_results
             # hardcoding boundary logits to utilize bcnet loss function
             boundary = torch.zeros_like(mask_logits, device='cuda')
             bo_bound = torch.zeros_like(mask_logits, device='cuda')
             a_mask_bound = torch.zeros_like(mask_logits, device='cuda')
             # ###
 
-            loss_mask, loss_mask_bo, loss_boundary, loss_boundary_bo, loss_a_mask, loss_a_boundary, loss_justify =\
-                mask_rcnn_loss(mask_logits, boundary, instances, bo_masks, bo_bound, 
-                                use_i_mask=self.aisformer.USE, pred_a_mask_logits=a_mask_logits, 
-                                pred_a_boundary_logits=a_mask_bound,
-                                use_justify_loss=self.aisformer.JUSTIFY_LOSS,
-                                c_iter=c_iter, dice_loss=dice_loss, pred_invisible_mask_logits=invisible_mask_logits)
+            # loss_mask, loss_mask_bo, loss_boundary, loss_boundary_bo, loss_a_mask, loss_a_boundary, loss_justify =\
+            loss_mask, loss_mask_bo, loss_boundary, loss_boundary_bo =\
+                mask_rcnn_loss(mask_logits, 
+                               boundary, 
+                               instances, 
+                               bo_masks, 
+                               bo_bound, 
+                            #    use_i_mask=self.aisformer.USE, 
+                            #    pred_a_mask_logits=a_mask_logits, 
+                            #    pred_a_boundary_logits=a_mask_bound,
+                            #    use_justify_loss=not self.no_amodal and self.aisformer.JUSTIFY_LOSS,
+                            #    c_iter=c_iter, 
+                               dice_loss=dice_loss, 
+                            #    pred_invisible_mask_logits=invisible_mask_logits
+                            )
 
             losses.update({
-                "loss_i_mask": loss_mask, #visible
+                "loss_mask": loss_mask, #visible
                 "loss_mask_bo": loss_mask_bo * 0.25, # occluder
-                "loss_mask": loss_a_mask, # amodal
-                "loss_justify": loss_justify * 0.25 #invisible
+                # "loss_mask": loss_a_mask, # amodal
+                # "loss_justify": loss_justify * 0.25 #invisible
             })
 
             # losses.update(self._forward_mask(features, proposals))
@@ -973,7 +987,11 @@ class StandardROIHeads(ROIHeads):
         if self.training:
             return self.mask_head(features,c_iter), instances
         else:
-            mask_logits, bo_masks, a_mask_logits, invisible_mask_logits = self.mask_head(features,c_iter)
+            if self.no_amodal: 
+                mask_logits, bo_masks = self.mask_head(features,c_iter)
+                a_mask_logits, invisible_mask_logits = None, None
+            else:
+                mask_logits, bo_masks, a_mask_logits, invisible_mask_logits = self.mask_head(features,c_iter)
             # hardcoding boundary logits to utilize bcnet inference function
             boundary = torch.zeros_like(mask_logits, device='cuda')
             bo_bound = torch.zeros_like(mask_logits, device='cuda')

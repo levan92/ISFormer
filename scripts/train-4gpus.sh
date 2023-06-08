@@ -3,7 +3,7 @@ export PYTHONPATH=$PYTHONPATH:`pwd`
 # export CUDA_LAUNCH_BLOCKING=1 # for debug
 # export CUDA_VISIBLE_DEVICES=0
 
-ID=1
+ID=2
 
 ## COCO
 config_path="configs/COCO-InmodalSeg/aisformer_R_50_FPN_1x_modal_only_coco.yaml"
@@ -19,5 +19,13 @@ config_path="configs/COCO-InmodalSeg/aisformer_R_50_FPN_1x_modal_only_coco.yaml"
 ## cocoa
 #config_path="configs/COCOA_cls-AmodalSeg/aisformer_R_50_FPN_1x_amodal_cocoa_cls.yaml"
 
-python3 tools/train_net.py --num-gpus 1 \
-	--config-file ${config_path} 2>&1 | tee log/train_log_$ID.txt
+trap "kill 0" EXIT
+
+# TORCH_DISTRIBUTED_DEBUG=DETAIL \
+python3 tools/train_net.py --num-gpus 4 \
+	--config-file ${config_path} 
+	# 2>&1 | tee log/train_log_$ID.txt
+
+wait
+
+echo "############ Training is done! ############"

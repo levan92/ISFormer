@@ -1,7 +1,7 @@
 _BASE_: '../Base-RCNN-FPN-KINS.yaml'
 OUTPUT_DIR: ../data/train_outputs/aisformer/aisformer_R_50_FPN_1x_amodal_kins/
 MODEL:
-  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  WEIGHTS: "/data/weights/detectron2/R-50.pkl"
   MASK_ON: True
   RESNETS:
     DEPTH: 50

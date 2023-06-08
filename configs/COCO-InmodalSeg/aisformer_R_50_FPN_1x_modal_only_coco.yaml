@@ -1,0 +1,29 @@
+_BASE_: '../Base-RCNN-FPN.yaml'
+OUTPUT_DIR: train_outputs/aisformer/aisformer_R_50_FPN_1x_modal_only_coco/
+MODEL:
+  WEIGHTS: "/data/weights/detectron2/R-50.pkl"
+  MASK_ON: True
+  RESNETS:
+    DEPTH: 50
+  ROI_MASK_HEAD:
+    CUSTOM_NAME: AISFormer
+  AISFormer:
+    NO_AMODAL: True
+    AMODAL_EVAL: False
+TEST:
+  EVAL_PERIOD: 4000
+DATASETS:
+  TRAIN: 
+    - coco_2017_train_person_occ
+  TEST: 
+    - ochumanex_val
+    - coco_2017_val_5k_person
+SOLVER:
+  IMS_PER_BATCH: 16
+  BASE_LR: 0.02
+  STEPS: (80000, 110000) # at 6/9 and 8/9 steps
+  MAX_ITER: 120000 # ~30 epoch
+  BEST_CHECKPOINTER:
+    ENABLED: True
+    METRIC: ochumanex_val/segm/AP
+  CHECKPOINT_PERIOD: 12000
